@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const filled = prompt.template.replace(/{(.*?)}/g, (_, key) => variables[key.trim()] || '');
 
     const aiRes = await client.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4.1-nano',
       messages: [{ role: 'user', content: filled }],
     });
 

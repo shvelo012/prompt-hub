@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react';
+import styles from './../styles/Home.module.css';
 
 interface Prompt {
   id: number;
@@ -66,39 +67,31 @@ export default function Home() {
   };
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem', fontFamily: 'Arial' }}>
-      <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>🧠 Prompt Hub</h1>
+    <div className={styles.container}>
+      <h1 className={styles.title}>🧠 Prompt Hub</h1>
 
-      <section style={{ marginBottom: '2rem', padding: '1.5rem', borderRadius: '12px', backgroundColor: '#f9f9f9', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+      <section className={styles.createSection}>
         <h2>Create a New Prompt</h2>
         <input
           placeholder="Title"
           value={newPrompt.title}
           onChange={(e) => setNewPrompt({ ...newPrompt, title: e.target.value })}
-          style={{ width: '100%', padding: '0.5rem', marginBottom: '1rem' }}
+          className={styles.input}
         />
         <textarea
           placeholder="Template (e.g., Translate {text} to {language})"
           value={newPrompt.template}
           onChange={(e) => setNewPrompt({ ...newPrompt, template: e.target.value })}
-          style={{ width: '100%', padding: '0.5rem', minHeight: '80px', marginBottom: '1rem' }}
+          className={styles.textarea}
         />
-        <button onClick={createPrompt} style={{ padding: '0.5rem 1rem', cursor: 'pointer' }}>Create Prompt</button>
+        <button onClick={createPrompt} className={styles.button}>
+          Create Prompt
+        </button>
       </section>
 
-      <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>Saved Prompts</h2>
+      <h2 className={styles.subtitle}>Saved Prompts</h2>
       {prompts.map((prompt) => (
-        <div
-          key={prompt.id}
-          style={{
-            border: '1px solid #ddd',
-            padding: '1.5rem',
-            marginBottom: '2rem',
-            borderRadius: '12px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-            backgroundColor: '#fff',
-          }}
-        >
+        <div key={prompt.id} className={styles.promptCard}>
           <h3>{prompt.title}</h3>
           <p><strong>Template:</strong> {prompt.template}</p>
 
@@ -109,24 +102,24 @@ export default function Home() {
             }}
           >
             {extractVariables(prompt.template).map((variable) => (
-              <div key={variable} style={{ marginBottom: '0.5rem' }}>
-                <label style={{ marginRight: '0.5rem' }}>{variable}:</label>
+              <div key={variable} className={styles.variableRow}>
+                <label className={styles.label}>{variable}:</label>
                 <input
                   value={inputs[prompt.id]?.[variable] || ''}
                   onChange={(e) => handleInputChange(prompt.id, variable, e.target.value)}
-                  style={{ padding: '0.4rem', width: '70%' }}
+                  className={styles.inputVariable}
                 />
               </div>
             ))}
-            <button type="submit" style={{ marginTop: '1rem', padding: '0.5rem 1rem', cursor: 'pointer' }}>
+            <button type="submit" className={styles.button}>
               {loading[prompt.id] ? 'Loading...' : 'Execute'}
             </button>
           </form>
 
           {responses[prompt.id] && !loading[prompt.id] && (
-            <div style={{ marginTop: '1rem', backgroundColor: '#f1f1f1', padding: '1rem', borderRadius: '8px' }}>
+            <div className={styles.responseBox}>
               <p><strong>AI Response:</strong></p>
-              <pre style={{ whiteSpace: 'pre-wrap' }}>{responses[prompt.id]}</pre>
+              <p>{responses[prompt.id]}</p>
             </div>
           )}
         </div>
