@@ -1,24 +1,40 @@
-// /pages/api/prompts/execute.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
 import { Prompt } from '../models/prompt';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { promptId, variables } = req.body;
+  try {
+    const { promptId, variables } = req.body;
 
-  const prompt = await Prompt.findByPk(promptId);
-  if (!prompt) return res.status(404).json({ error: 'Prompt not found' });
+    if (!promptId || !variables) {
+      return res.status(400).json({ error: 'Missing required fields: promptId or variables' });
+    }
 
-  const filled = prompt.template.replace(/{(.*?)}/g, (_, key) => variables[key.trim()] || '');
+    const prompt = await Prompt.findByPk(promptId);
+    if (!prompt) {
+      return res.status(404).json({ error: 'Prompt not found' });
+    }
 
-  const aiRes = await openai.chat.completions.create({
-    model: 'gpt-3.5-turbo',
-    messages: [{ role: 'user', content: filled }],
-  });
+    const filled = prompt.template.replace(/{(.*?)}/g, (_, key) => variables[key.trim()] || '');
 
-  res.status(200).json({ result: aiRes.choices[0].message?.content });
+    const aiRes = await client.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [{ role: 'user', content: filled }],
+    });
+
+    const response = aiRes.choices?.[0]?.message?.content;
+
+    if (!response) {
+      return res.status(500).json({ error: 'No valid response from OpenAI' });
+    }
+
+    res.status(200).json({ result: response });
+  } catch (error: any) {
+    console.error('Error executing prompt:', error);
+    res.status(500).json({ error: 'Internal server error', details: error.message });
+  }
 }

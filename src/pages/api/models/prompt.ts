@@ -25,5 +25,5 @@ Prompt.init(
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
   },
-  { sequelize, modelName: 'Prompt' }
+  { sequelize, modelName: 'Prompt', tableName: 'prompts' }
 );
