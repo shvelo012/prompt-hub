@@ -30,9 +30,16 @@ export default function PromptCard({
       <form
         onSubmit={(e) => {
           e.preventDefault();
+          const variables = extractVariables(prompt.template);
+          const hasEmpty = variables.some((v) => !inputValues[v]?.trim());
+          if (hasEmpty) {
+            alert('Please fill in all fields.');
+            return;
+          }
           onSubmit();
         }}
       >
+
         {extractVariables(prompt.template).map((variable) => (
           <div key={variable} className={styles.variableRow}>
             <label className={styles.label}>{variable}:</label>
