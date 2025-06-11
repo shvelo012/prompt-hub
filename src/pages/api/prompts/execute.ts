@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 import { Prompt } from '../models/prompt';
 
 const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

@@ -1,6 +1,8 @@
-'use client'
+'use client';
 import { useEffect, useState } from 'react';
-import styles from './../styles/Home.module.css';
+import styles from '../styles/Home.module.css';
+import PromptForm from '../components/PromptForm';
+import PromptCard from '../components/PromptCard';
 
 interface Prompt {
   id: number;
@@ -18,15 +20,8 @@ export default function Home() {
   const [loading, setLoading] = useState<{ [key: number]: boolean }>({});
 
   useEffect(() => {
-    fetch('/api/prompts')
-      .then((res) => res.json())
-      .then(setPrompts);
+    fetch('/api/prompts').then((res) => res.json()).then(setPrompts);
   }, []);
-
-  const extractVariables = (template: string): string[] => {
-    const matches = template.match(/{(.*?)}/g);
-    return matches ? matches.map(v => v.replace(/[{}]/g, '')) : [];
-  };
 
   const handleInputChange = (promptId: number, key: string, value: string) => {
     setInputs((prev) => ({
@@ -38,17 +33,15 @@ export default function Home() {
   const executePrompt = async (promptId: number) => {
     const variables = inputs[promptId] || {};
     setLoading((prev) => ({ ...prev, [promptId]: true }));
-
     try {
       const res = await fetch('/api/prompts/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ promptId, variables }),
       });
-
       const data = await res.json();
       setResponses((prev) => ({ ...prev, [promptId]: data.result }));
-    } catch (error) {
+    } catch {
       setResponses((prev) => ({ ...prev, [promptId]: 'Error fetching AI response' }));
     } finally {
       setLoading((prev) => ({ ...prev, [promptId]: false }));
@@ -70,59 +63,24 @@ export default function Home() {
     <div className={styles.container}>
       <h1 className={styles.title}>🧠 Prompt Hub</h1>
 
-      <section className={styles.createSection}>
-        <h2>Create a New Prompt</h2>
-        <input
-          placeholder="Title"
-          value={newPrompt.title}
-          onChange={(e) => setNewPrompt({ ...newPrompt, title: e.target.value })}
-          className={styles.input}
-        />
-        <textarea
-          placeholder="Template (e.g., Translate {text} to {language})"
-          value={newPrompt.template}
-          onChange={(e) => setNewPrompt({ ...newPrompt, template: e.target.value })}
-          className={styles.textarea}
-        />
-        <button onClick={createPrompt} className={styles.button}>
-          Create Prompt
-        </button>
-      </section>
+      <PromptForm
+        title={newPrompt.title}
+        template={newPrompt.template}
+        onChange={(field, value) => setNewPrompt({ ...newPrompt, [field]: value })}
+        onCreate={createPrompt}
+      />
 
       <h2 className={styles.subtitle}>Saved Prompts</h2>
       {prompts.map((prompt) => (
-        <div key={prompt.id} className={styles.promptCard}>
-          <h3>{prompt.title}</h3>
-          <p><strong>Template:</strong> {prompt.template}</p>
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              executePrompt(prompt.id);
-            }}
-          >
-            {extractVariables(prompt.template).map((variable) => (
-              <div key={variable} className={styles.variableRow}>
-                <label className={styles.label}>{variable}:</label>
-                <input
-                  value={inputs[prompt.id]?.[variable] || ''}
-                  onChange={(e) => handleInputChange(prompt.id, variable, e.target.value)}
-                  className={styles.inputVariable}
-                />
-              </div>
-            ))}
-            <button type="submit" className={styles.button}>
-              {loading[prompt.id] ? 'Loading...' : 'Execute'}
-            </button>
-          </form>
-
-          {responses[prompt.id] && !loading[prompt.id] && (
-            <div className={styles.responseBox}>
-              <p><strong>AI Response:</strong></p>
-              <p>{responses[prompt.id]}</p>
-            </div>
-          )}
-        </div>
+        <PromptCard
+          key={prompt.id}
+          prompt={prompt}
+          inputValues={inputs[prompt.id] || {}}
+          onInputChange={(key, value) => handleInputChange(prompt.id, key, value)}
+          onSubmit={() => executePrompt(prompt.id)}
+          loading={loading[prompt.id]}
+          response={responses[prompt.id]}
+        />
       ))}
     </div>
   );
